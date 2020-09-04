@@ -1,0 +1,208 @@
+<template>
+	<div id="schulcloud_prefs" class="section">
+		<h2>
+			<a class="icon icon-schulcloud" />
+			{{ t('integration_schulcloud', 'Schulcloud integration') }}
+		</h2>
+		<p class="settings-hint">
+			{{ t('integration_schulcloud', 'If you fail getting access to your Schulcloud account, this is probably because your Schulcloud instance is not authorized to give API keys to your Nextcloud instance.') }}
+			<br>
+			{{ t('integration_schulcloud', 'Ask the Schulcloud admin to set authorized OAuth redirect URL to') }}
+			<b>"web+nextcloud://sc-callback"</b>
+		</p>
+		<div class="schulcloud-grid-form">
+			<label for="schulcloud-url">
+				<a class="icon icon-link" />
+				{{ t('integration_schulcloud', 'Schulcloud instance address') }}
+			</label>
+			<select id="schulcloud-url"
+				v-model="state.url"
+				@input="onInput">
+				<option value="">
+					{{ t('integration_schulcloud', 'Choose a Schul-Cloud instance') }}
+				</option>
+				<option value="https://test.hpi-schul-cloud.org">
+					test.hpi-schul-cloud.org
+				</option>
+			</select>
+			<button v-if="showOAuth"
+				id="schulcloud-oauth"
+				@click="onOAuthClick">
+				<span class="icon icon-external" />
+				{{ t('integration_schulcloud', 'Request Schulcloud access') }}
+			</button>
+			<span v-else />
+			<label for="schulcloud-token">
+				<a class="icon icon-category-auth" />
+				{{ t('integration_schulcloud', 'Schulcloud API-key') }}
+			</label>
+			<input id="schulcloud-token"
+				v-model="state.token"
+				type="password"
+				:readonly="readonly"
+				:placeholder="t('integration_schulcloud', 'my-api-key')"
+				@focus="readonly = false"
+				@input="onInput">
+		</div>
+	</div>
+</template>
+
+<script>
+import { loadState } from '@nextcloud/initial-state'
+import { generateUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
+import { delay } from '../utils'
+import { showSuccess, showError } from '@nextcloud/dialogs'
+
+export default {
+	name: 'PersonalSettings',
+
+	components: {
+	},
+
+	props: [],
+
+	data() {
+		return {
+			state: loadState('integration_schulcloud', 'user-config'),
+			readonly: true,
+			// TODO choose between classic redirection (requires 'allowed user api auth redirects' => * or the specific redirect_uri)
+			// and protocol handler based redirection for which 'allowed user api auth redirects' => web+nextcloud:// is enough and will work with all NC instances
+			// redirect_uri: OC.getProtocol() + '://' + OC.getHostName() + generateUrl('/apps/integration_schulcloud/oauth-redirect'),
+			redirect_uri: 'web+nextcloud://sc-callback',
+		}
+	},
+
+	computed: {
+		showOAuth() {
+			return this.state.url
+		},
+	},
+
+	watch: {
+	},
+
+	mounted() {
+		const paramString = window.location.search.substr(1)
+		// eslint-disable-next-line
+		const urlParams = new URLSearchParams(paramString)
+		const dscToken = urlParams.get('schulcloudToken')
+		if (dscToken === 'success') {
+			showSuccess(t('integration_schulcloud', 'Schulcloud API-key successfully retrieved!'))
+		} else if (dscToken === 'error') {
+			showError(t('integration_schulcloud', 'Schulcloud API-key could not be obtained:') + ' ' + urlParams.get('message'))
+		}
+
+		// register protocol handler
+		if (window.isSecureContext && window.navigator.registerProtocolHandler) {
+			window.navigator.registerProtocolHandler('web+nextcloud', generateUrl('/apps/integration_schulcloud/oauth-protocol-redirect') + '?url=%s', 'Nextcloud Schulcloud integration')
+		}
+	},
+
+	methods: {
+		onInput() {
+			const that = this
+			delay(function() {
+				that.saveOptions()
+			}, 2000)()
+		},
+		saveOptions() {
+			if (this.state.url !== '' && !this.state.url.startsWith('https://')) {
+				if (this.state.url.startsWith('http://')) {
+					this.state.url = this.state.url.replace('http://', 'https://')
+				} else {
+					this.state.url = 'https://' + this.state.url
+				}
+			}
+			const req = {
+				values: {
+					token: this.state.token,
+					url: this.state.url,
+				},
+			}
+			const url = generateUrl('/apps/integration_schulcloud/config')
+			axios.put(url, req)
+				.then((response) => {
+					showSuccess(t('integration_schulcloud', 'Schulcloud options saved.'))
+				})
+				.catch((error) => {
+					showError(
+						t('integration_schulcloud', 'Failed to save Schulcloud options')
+						+ ': ' + error.response.request.responseText
+					)
+				})
+				.then(() => {
+				})
+		},
+		onOAuthClick() {
+			const nonce = this.makeNonce(16)
+			const requestUrl = this.state.url + '/oauth2/auth?client_id=' + encodeURIComponent(this.state.client_id)
+				+ '&auth_redirect=' + encodeURIComponent(this.redirect_uri)
+				+ '&application_name=' + encodeURIComponent('Nextcloudschulcloudintegration')
+				+ '&nonce=' + encodeURIComponent(nonce)
+				+ '&scopes=' + encodeURIComponent('read,write,notifications')
+
+			const req = {
+				values: {
+					nonce,
+				},
+			}
+			const url = generateUrl('/apps/integration_schulcloud/config')
+			axios.put(url, req)
+				.then((response) => {
+					window.location.replace(requestUrl)
+				})
+				.catch((error) => {
+					showError(
+						t('integration_schulcloud', 'Failed to save Schulcloud nonce')
+						+ ': ' + error.response.request.responseText
+					)
+				})
+				.then(() => {
+				})
+		},
+		makeNonce(l) {
+			let text = ''
+			const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+			for (let i = 0; i < l; i++) {
+				text += chars.charAt(Math.floor(Math.random() * chars.length))
+			}
+			return text
+		},
+	},
+}
+</script>
+
+<style scoped lang="scss">
+.schulcloud-grid-form label {
+	line-height: 38px;
+}
+.schulcloud-grid-form input {
+	width: 100%;
+}
+.schulcloud-grid-form {
+	max-width: 900px;
+	display: grid;
+	grid-template: 1fr / 1fr 1fr 1fr;
+	margin-left: 30px;
+	button .icon {
+		margin-bottom: -1px;
+	}
+}
+#schulcloud_prefs .icon {
+	display: inline-block;
+	width: 32px;
+}
+#schulcloud_prefs .grid-form .icon {
+	margin-bottom: -3px;
+}
+.icon-schulcloud {
+	background-image: url(./../../img/app-dark.svg);
+	background-size: 23px 23px;
+	height: 23px;
+	margin-bottom: -4px;
+}
+body.dark .icon-schulcloud {
+	background-image: url(./../../img/app.svg);
+}
+</style>

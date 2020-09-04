@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<info>
+    <id>integration_schulcloud</id>
+    <name>Schulcloud integration</name>
+    <summary>Integration of Schulcloud forum and mailing list management system</summary>
+    <description><![CDATA[Schulcloud integration provides a dashboard widget displaying your important notifications.]]></description>
+    <version>0.0.1</version>
+    <licence>agpl</licence>
+    <author>Julien Veyssier</author>
+    <namespace>Schulcloud</namespace>
+    <documentation>
+        <developer>https://github.com/hpi-schul-cloud/integration_schulcloud/wikis</developer>
+    </documentation>
+    <category>integration</category>
+    <category>dashboard</category>
+    <website>https://github.com/hpi-schul-cloud/integration_schulcloud</website>
+    <bugs>https://github.com/hpi-schul-cloud/integration_schulcloud/issues</bugs>
+    <screenshot>https://github.com/hpi-schul-cloud/integration_schulcloud/raw/master/img/screenshot1.jpg</screenshot>
+    <dependencies>
+        <database min-version="9.4">pgsql</database>
+        <database>sqlite</database>
+        <database min-version="5.5">mysql</database>
+        <nextcloud min-version="20" max-version="21"/>
+    </dependencies>
+    <settings>
+        <personal>OCA\Schulcloud\Settings\Personal</personal>
+        <personal-section>OCA\Schulcloud\Settings\PersonalSection</personal-section>
+    </settings>
+</info>

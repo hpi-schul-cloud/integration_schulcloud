@@ -1,0 +1,7 @@
+.icon-schulcloud {
+    background-image: url(./../img/app-dark.svg);
+}
+
+body.theme--dark .icon-schulcloud {
+    background-image: url(./../img/app.svg);
+}
