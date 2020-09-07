@@ -12,6 +12,8 @@ use OCP\IInitialStateService;
 
 use OCA\Schulcloud\AppInfo\Application;
 
+require_once __DIR__ . '/../constants.php';
+
 class Personal implements ISettings {
 
     private $request;
@@ -45,9 +47,9 @@ class Personal implements ISettings {
         $url = $this->config->getUserValue($this->userId, Application::APP_ID, 'url', '');
 
         // for OAuth
-        $clientID = 'nextcloud';
-        $clientSecret = 'nextcloud_secret';
-        // Token endpoint uth_method: client_secret_post
+        $clientID = DEFAULT_CLIENT_ID;
+        $clientSecret = DEFAULT_CLIENT_SECRET;
+        // Token endpoint auth_method: client_secret_post
 
         $userConfig = [
             'token' => $token,
