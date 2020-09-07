@@ -1,6 +1,6 @@
-# Schul-Cloud Nextcloud integration
+# HPI Schul-Cloud Nextcloud integration
 
-This app adds a dashboard item to see your main Schul-Cloud notifications.
+This app adds a dashboard item to see your main HPI Schul-Cloud notifications.
 
 ## Releases
 
