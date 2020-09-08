@@ -36,8 +36,10 @@ class SchulcloudAPIService {
         $this->client = $clientService->newClient();
     }
 
-    public function getNotifications($url, $accessToken, $since = null) {
-        $result = $this->request($url, $accessToken, 'notifications.json', $params);
+    public function getNotifications(string $url,
+                                    string $accessToken, string $refreshToken, string $clientID, string $clientSecret,
+                                    ?string $since) {
+        $result = $this->request($url, $accessToken, $refreshToken, $clientID, $clientSecret, 'notifications.json', $params);
         if (!is_array($result)) {
             return $result;
         }
@@ -51,8 +53,10 @@ class SchulcloudAPIService {
         return $notifications;
     }
 
-    public function getSchulcloudAvatar($url, $accessToken, $username) {
-        $result = $this->request($url, $accessToken, 'users/'.$username.'.json');
+    public function getSchulcloudAvatar(string $url,
+                                        string $accessToken, string $refreshToken, string $clientID, string $clientSecret,
+                                        string $username) {
+        $result = $this->request($url, $accessToken, $refreshToken, $clientID, $clientSecret, 'users/'.$username.'.json');
         if (is_array($result) and isset($result['user']) and isset($result['user']['avatar_template'])) {
             $avatarUrl = $url . str_replace('{size}', '32', $result['user']['avatar_template']);
             return $this->client->get($avatarUrl)->getBody();
@@ -60,7 +64,9 @@ class SchulcloudAPIService {
         return '';
     }
 
-    public function request($url, $accessToken, $endPoint, $params = [], $method = 'GET') {
+    public function request(string $url,
+                            string $accessToken, string $refreshToken, string $clientID, string $clientSecret,
+                            string $endPoint, array $params = [], string $method = 'GET'): array {
         try {
             $url = $url . '/' . $endPoint;
             $options = [
@@ -105,17 +111,38 @@ class SchulcloudAPIService {
             $respCode = $response->getStatusCode();
 
             if ($respCode >= 400) {
-                return $this->l10n->t('Bad credentials');
+                return ['error' => $this->l10n->t('Bad credentials')];
             } else {
                 return json_decode($body, true);
             }
-        } catch (\Exception $e) {
+        } catch (ClientException $e) {
             $this->logger->warning('Schulcloud API error : '.$e, array('app' => $this->appName));
-            return $e;
+            $response = $e->getResponse();
+            $body = (string) $response->getBody();
+            // refresh token if it's invalid and we are using oauth
+            if (strpos($body, 'expired') !== false) {
+                $this->logger->warning('Trying to REFRESH the access token', array('app' => $this->appName));
+                // try to refresh the token
+                $result = $this->requestOAuthAccessToken($url, [
+                    'client_id' => $clientID,
+                    'client_secret' => $clientSecret,
+                    'grant_type' => 'refresh_token',
+                    'refresh_token' => $refreshToken,
+                ], 'POST');
+                if (isset($result['access_token'])) {
+                    $accessToken = $result['access_token'];
+                    $this->config->setUserValue($this->userId, Application::APP_ID, 'token', $accessToken);
+                    // retry the request with new access token
+                    return $this->request(
+                        $url, $accessToken, $refreshToken, $clientID, $clientSecret, $endPoint, $params, $method
+                    );
+                }
+            }
+            return ['error' => $e->getMessage()];
         }
     }
 
-    public function requestOAuthAccessToken($url, $params = [], $method = 'GET'): array {
+    public function requestOAuthAccessToken(string $url, array $params = [], string $method = 'GET'): array {
         try {
             $url = $url . '/oauth2/token';
             $options = [

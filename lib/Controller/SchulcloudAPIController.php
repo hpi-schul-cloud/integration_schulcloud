@@ -33,6 +33,8 @@ use OCP\AppFramework\Controller;
 use OCA\Schulcloud\Service\SchulcloudAPIService;
 use OCA\Schulcloud\AppInfo\Application;
 
+require_once __DIR__ . '/../constants.php';
+
 class SchulcloudAPIController extends Controller {
 
 
@@ -60,7 +62,9 @@ class SchulcloudAPIController extends Controller {
         $this->logger = $logger;
         $this->schulcloudAPIService = $schulcloudAPIService;
         $this->accessToken = $this->config->getUserValue($this->userId, Application::APP_ID, 'token', '');
-        $this->clientID = $this->config->getUserValue($this->userId, Application::APP_ID, 'client_id', '');
+        $this->refreshToken = $this->config->getUserValue($this->userId, Application::APP_ID, 'refresh_token', '');
+        $this->clientID = DEFAULT_SCHULCLOUD_CLIENT_ID;
+        $this->clientSecret = DEFAULT_SCHULCLOUD_CLIENT_SECRET;
         $this->schulcloudUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url', '');
     }
 
@@ -78,7 +82,11 @@ class SchulcloudAPIController extends Controller {
      * @NoCSRFRequired
      */
     public function getSchulcloudAvatar($username) {
-        $response = new DataDisplayResponse($this->schulcloudAPIService->getSchulcloudAvatar($this->schulcloudUrl, $this->accessToken, $username));
+        $response = new DataDisplayResponse(
+            $this->schulcloudAPIService->getSchulcloudAvatar(
+                $this->schulcloudUrl, $this->accessToken, $this->refreshToken, $this->clientID, $this->clientSecret, $username
+            )
+        );
         $response->cacheFor(60*60*24);
         return $response;
     }
@@ -91,8 +99,10 @@ class SchulcloudAPIController extends Controller {
         if ($this->accessToken === '' or $this->clientID === '') {
             return new DataResponse('', 400);
         }
-        $result = $this->schulcloudAPIService->getNotifications($this->schulcloudUrl, $this->accessToken, $since);
-        if (is_array($result)) {
+        $result = $this->schulcloudAPIService->getNotifications(
+            $this->schulcloudUrl, $this->accessToken, $this->refreshToken, $this->clientID, $this->clientSecret, $since
+        );
+        if (!isset($result['error'])) {
             $response = new DataResponse($result);
         } else {
             $response = new DataResponse($result, 401);
