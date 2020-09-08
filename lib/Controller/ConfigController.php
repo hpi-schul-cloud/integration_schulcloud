@@ -110,7 +110,7 @@ class ConfigController extends Controller {
      * @NoAdminRequired
      * @NoCSRFRequired
      */
-    public function oauthRedirect(string $code, string $state) {
+    public function oauthRedirect(?string $code, ?string $state) {
         $configState = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_state', '');
         $clientID = DEFAULT_SCHULCLOUD_CLIENT_ID;
         $clientSecret = DEFAULT_SCHULCLOUD_CLIENT_SECRET;
@@ -129,9 +129,11 @@ class ConfigController extends Controller {
                 'grant_type' => 'authorization_code',
                 'redirect_uri' => $redirect_uri,
             ], 'POST');
-            if (isset($result['access_token'])) {
+            if (isset($result['access_token']) && isset($result['refresh_token'])) {
                 $accessToken = $result['access_token'];
+                $refreshToken = $result['refresh_token'];
                 $this->config->setUserValue($this->userId, Application::APP_ID, 'token', $accessToken);
+                $this->config->setUserValue($this->userId, Application::APP_ID, 'refresh_token', $refreshToken);
                 return new RedirectResponse(
                     $this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'linked-accounts']) .
                     '?schulcloudToken=success#schulcloud_prefs'

@@ -143,10 +143,10 @@ export default {
 			const requestUrl = this.state.url + '/oauth2/auth?client_id=' + encodeURIComponent(this.state.client_id)
 				// + '&redirect_uri=' + encodeURIComponent(this.redirect_uri)
 				+ '&redirect_uri=' + encodeURIComponent(myUrl)
-				//+ '&application_name=' + encodeURIComponent('Nextcloudschulcloudintegration')
+				// + '&application_name=' + encodeURIComponent('Nextcloudschulcloudintegration')
 				+ '&response_type=code'
 				+ '&state=' + encodeURIComponent(oauthState)
-				+ '&scopes=' + encodeURIComponent('openid')
+				+ '&scope=' + encodeURIComponent('offline')
 
 			console.debug(myUrl)
 			console.debug(requestUrl)
