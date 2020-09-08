@@ -1,4 +1,4 @@
 <?php
-define('DEFAULT_CLIENT_ID', 'nextcloud');
-define('DEFAULT_CLIENT_SECRET', 'nextcloud_secret');
+define('DEFAULT_SCHULCLOUD_CLIENT_ID', 'nextcloud');
+define('DEFAULT_SCHULCLOUD_CLIENT_SECRET', 'nextcloud_secret');
 ?>

@@ -47,10 +47,8 @@ class Personal implements ISettings {
         $url = $this->config->getUserValue($this->userId, Application::APP_ID, 'url', '');
 
         // for OAuth
-        //$clientID = DEFAULT_CLIENT_ID;
-        $clientID = 'nextcloud';
-        //$clientSecret = DEFAULT_CLIENT_SECRET;
-        $clientSecret = 'nextcloud_secret';
+        $clientID = DEFAULT_SCHULCLOUD_CLIENT_ID;
+        $clientSecret = DEFAULT_SCHULCLOUD_CLIENT_SECRET;
         // Token endpoint auth_method: client_secret_post
 
         $userConfig = [

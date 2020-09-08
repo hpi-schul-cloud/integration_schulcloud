@@ -148,7 +148,6 @@ class SchulcloudAPIService {
             if ($respCode >= 400) {
                 return ['error' => $this->l10n->t('OAuth access token refused')];
             } else {
-                error_log('TOKEN RESPONSE '.$body);
                 return json_decode($body, true);
             }
         } catch (\Exception $e) {

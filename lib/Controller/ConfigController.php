@@ -112,10 +112,8 @@ class ConfigController extends Controller {
      */
     public function oauthRedirect(string $code, string $state) {
         $configState = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_state', '');
-        //$clientID = $this->config->getAppValue(Application::APP_ID, 'client_id', '');
-        //$clientSecret = $this->config->getAppValue(Application::APP_ID, 'client_secret', '');
-        $clientID = DEFAULT_CLIENT_ID;
-        $clientSecret = DEFAULT_CLIENT_SECRET;
+        $clientID = DEFAULT_SCHULCLOUD_CLIENT_ID;
+        $clientSecret = DEFAULT_SCHULCLOUD_CLIENT_SECRET;
 
         // anyway, reset state
         $this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_state', '');
@@ -125,8 +123,8 @@ class ConfigController extends Controller {
             // TODO replace with protocol
             $redirect_uri = $this->urlGenerator->linkToRouteAbsolute('integration_schulcloud.config.oauthRedirect');
             $result = $this->schulcloudAPIService->requestOAuthAccessToken($schulcloudUrl, [
-                'client_id' => 'nextcloud',
-                'client_secret' => 'nextcloud_secret',
+                'client_id' => $clientID,
+                'client_secret' => $clientSecret,
                 'code' => $code,
                 'grant_type' => 'authorization_code',
                 'redirect_uri' => $redirect_uri,
