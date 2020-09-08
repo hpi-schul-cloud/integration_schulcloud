@@ -24,6 +24,9 @@
 				<option value="https://test.hpi-schul-cloud.org">
 					test.hpi-schul-cloud.org
 				</option>
+				<option value="https://oauth.test.hpi-schul-cloud.org">
+					oauth.test.hpi-schul-cloud.org
+				</option>
 			</select>
 			<button v-if="showOAuth"
 				id="schulcloud-oauth"
@@ -135,16 +138,23 @@ export default {
 				})
 		},
 		onOAuthClick() {
-			const nonce = this.makeNonce(16)
+			const oauthState = this.makeNonce(8)
+			const myUrl = window.location.protocol + '//' + window.location.host + generateUrl('/apps/integration_schulcloud/oauth-redirect')
 			const requestUrl = this.state.url + '/oauth2/auth?client_id=' + encodeURIComponent(this.state.client_id)
-				+ '&auth_redirect=' + encodeURIComponent(this.redirect_uri)
-				+ '&application_name=' + encodeURIComponent('Nextcloudschulcloudintegration')
-				+ '&nonce=' + encodeURIComponent(nonce)
-				+ '&scopes=' + encodeURIComponent('read,write,notifications')
+				// + '&redirect_uri=' + encodeURIComponent(this.redirect_uri)
+				+ '&redirect_uri=' + encodeURIComponent(myUrl)
+				//+ '&application_name=' + encodeURIComponent('Nextcloudschulcloudintegration')
+				+ '&response_type=code'
+				+ '&state=' + encodeURIComponent(oauthState)
+				+ '&scopes=' + encodeURIComponent('openid')
+
+			console.debug(myUrl)
+			console.debug(requestUrl)
+			// return
 
 			const req = {
 				values: {
-					nonce,
+					oauth_state: oauthState,
 				},
 			}
 			const url = generateUrl('/apps/integration_schulcloud/config')

@@ -115,4 +115,45 @@ class SchulcloudAPIService {
         }
     }
 
+    public function requestOAuthAccessToken($url, $params = [], $method = 'GET'): array {
+        try {
+            $url = $url . '/oauth2/token';
+            $options = [
+                'headers' => [
+                    'User-Agent'  => 'Nextcloud Schulcloud integration',
+                ]
+            ];
+
+            if (count($params) > 0) {
+                if ($method === 'GET') {
+                    $paramsContent = http_build_query($params);
+                    $url .= '?' . $paramsContent;
+                } else {
+                    $options['body'] = $params;
+                }
+            }
+
+            if ($method === 'GET') {
+                $response = $this->client->get($url, $options);
+            } else if ($method === 'POST') {
+                $response = $this->client->post($url, $options);
+            } else if ($method === 'PUT') {
+                $response = $this->client->put($url, $options);
+            } else if ($method === 'DELETE') {
+                $response = $this->client->delete($url, $options);
+            }
+            $body = $response->getBody();
+            $respCode = $response->getStatusCode();
+
+            if ($respCode >= 400) {
+                return ['error' => $this->l10n->t('OAuth access token refused')];
+            } else {
+                error_log('TOKEN RESPONSE '.$body);
+                return json_decode($body, true);
+            }
+        } catch (\Exception $e) {
+            $this->logger->warning('Schulcloud OAuth error : '.$e, array('app' => $this->appName));
+            return ['error' => $e->getMessage()];
+        }
+    }
 }

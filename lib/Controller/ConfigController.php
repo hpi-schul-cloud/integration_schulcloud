@@ -95,46 +95,48 @@ class ConfigController extends Controller {
     }
 
     /**
-     * receive oauth encrypted payload with protocol handler redirect
+     * receive oauth redirection forwarded by custom protocol handler
      * @NoAdminRequired
      * @NoCSRFRequired
      */
     public function oauthProtocolRedirect($url) {
         $parts = parse_url($url);
         parse_str($parts['query'], $params);
-        return $this->oauthRedirect($params['payload']);
+        return $this->oauthRedirect($params['code'], $params['state']);
     }
 
     /**
-     * receive oauth encrypted payload
+     * receive oauth redirection
      * @NoAdminRequired
      * @NoCSRFRequired
      */
-    public function oauthRedirect($payload) {
-        $configNonce = $this->config->getUserValue($this->userId, Application::APP_ID, 'nonce', '');
+    public function oauthRedirect(string $code, string $state) {
+        $configState = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_state', '');
         //$clientID = $this->config->getAppValue(Application::APP_ID, 'client_id', '');
         //$clientSecret = $this->config->getAppValue(Application::APP_ID, 'client_secret', '');
         $clientID = DEFAULT_CLIENT_ID;
         $clientSecret = DEFAULT_CLIENT_SECRET;
-        $payloadArray = json_decode($payload, true);
 
-        // anyway, reset nonce
-        $this->config->setUserValue($this->userId, Application::APP_ID, 'nonce', '');
+        // anyway, reset state
+        $this->config->setUserValue($this->userId, Application::APP_ID, 'oauth_state', '');
 
-        // TODO get all params given by redirection URL
-        if (is_array($payloadArray) and $configNonce !== '' and $configNonce === $payloadArray['nonce']) {
-            $result = $this->schulcloudAPIService->requestOAuthAccessToken([
-                'client_id' => $clientID,
-                'client_secret' => $clientSecret,
+        if ($configState !== '' and $configState === $state) {
+            $schulcloudUrl = $this->config->getUserValue($this->userId, Application::APP_ID, 'url', '');
+            // TODO replace with protocol
+            $redirect_uri = $this->urlGenerator->linkToRouteAbsolute('integration_schulcloud.config.oauthRedirect');
+            $result = $this->schulcloudAPIService->requestOAuthAccessToken($schulcloudUrl, [
+                'client_id' => 'nextcloud',
+                'client_secret' => 'nextcloud_secret',
                 'code' => $code,
-                'state' => $state
+                'grant_type' => 'authorization_code',
+                'redirect_uri' => $redirect_uri,
             ], 'POST');
             if (isset($result['access_token'])) {
                 $accessToken = $result['access_token'];
                 $this->config->setUserValue($this->userId, Application::APP_ID, 'token', $accessToken);
                 return new RedirectResponse(
                     $this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'linked-accounts']) .
-                    '?schulcloudToken=success'
+                    '?schulcloudToken=success#schulcloud_prefs'
                 );
             }
             $result = $this->l->t('Error getting OAuth access token');
@@ -142,7 +144,7 @@ class ConfigController extends Controller {
 
         return new RedirectResponse(
             $this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'linked-accounts']) .
-            '?schulcloudToken=error&message=' . urlencode($result)
+            '?schulcloudToken=error&message=' . urlencode($result) . '#schulcloud_prefs'
         );
     }
 
