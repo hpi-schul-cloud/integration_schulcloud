@@ -135,7 +135,7 @@ class ConfigController extends Controller {
                 $this->config->setUserValue($this->userId, Application::APP_ID, 'token', $accessToken);
                 $this->config->setUserValue($this->userId, Application::APP_ID, 'refresh_token', $refreshToken);
                 return new RedirectResponse(
-                    $this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'linked-accounts']) .
+                    $this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'connected-accounts']) .
                     '?schulcloudToken=success#schulcloud_prefs'
                 );
             }
@@ -143,7 +143,7 @@ class ConfigController extends Controller {
         }
 
         return new RedirectResponse(
-            $this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'linked-accounts']) .
+            $this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'connected-accounts']) .
             '?schulcloudToken=error&message=' . urlencode($result) . '#schulcloud_prefs'
         );
     }
