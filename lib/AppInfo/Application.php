@@ -27,24 +27,24 @@ use OCA\Schulcloud\Dashboard\SchulcloudWidget;
  */
 class Application extends App implements IBootstrap {
 
-    public const APP_ID = 'integration_schulcloud';
+	public const APP_ID = 'integration_schulcloud';
 
-    /**
-     * Constructor
-     *
-     * @param array $urlParams
-     */
-    public function __construct(array $urlParams = []) {
-        parent::__construct(self::APP_ID, $urlParams);
+	/**
+	 * Constructor
+	 *
+	 * @param array $urlParams
+	 */
+	public function __construct(array $urlParams = []) {
+		parent::__construct(self::APP_ID, $urlParams);
 
-        $container = $this->getContainer();
-    }
+		$container = $this->getContainer();
+	}
 
-    public function register(IRegistrationContext $context): void {
-        $context->registerDashboardWidget(SchulcloudWidget::class);
-    }
+	public function register(IRegistrationContext $context): void {
+		$context->registerDashboardWidget(SchulcloudWidget::class);
+	}
 
-    public function boot(IBootContext $context): void {
-    }
+	public function boot(IBootContext $context): void {
+	}
 }
 
