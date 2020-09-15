@@ -4,48 +4,50 @@
 			<a class="icon icon-schulcloud" />
 			{{ t('integration_schulcloud', 'Schulcloud integration') }}
 		</h2>
-		<p class="settings-hint">
+		<p v-if="!connected" class="settings-hint">
 			{{ t('integration_schulcloud', 'If you fail getting access to your Schulcloud account, this is probably because your Schulcloud instance is not authorized to give API keys to your Nextcloud instance.') }}
 			<br>
 			{{ t('integration_schulcloud', 'Ask the Schulcloud admin to set authorized OAuth redirect URL to') }}
 			<b>"web+nextcloud://sc-callback"</b>
 		</p>
-		<div class="schulcloud-grid-form">
-			<label for="schulcloud-url">
-				<a class="icon icon-link" />
-				{{ t('integration_schulcloud', 'Schulcloud instance address') }}
-			</label>
-			<select id="schulcloud-url"
-				v-model="state.url"
-				@input="onInput">
-				<option value="">
-					{{ t('integration_schulcloud', 'Choose a Schul-Cloud instance') }}
-				</option>
-				<option value="https://test.hpi-schul-cloud.org">
-					test.hpi-schul-cloud.org
-				</option>
-				<option value="https://oauth.test.hpi-schul-cloud.org">
-					oauth.test.hpi-schul-cloud.org
-				</option>
-			</select>
-			<button v-if="showOAuth"
+		<div id="schulcloud-content">
+			<div class="schulcloud-grid-form">
+				<label for="schulcloud-url">
+					<a class="icon icon-link" />
+					{{ t('integration_schulcloud', 'Schulcloud instance address') }}
+				</label>
+				<select id="schulcloud-url"
+					v-model="state.url"
+					:disabled="connected === true"
+					@input="onInput">
+					<option value="">
+						{{ t('integration_schulcloud', 'Choose a Schul-Cloud instance') }}
+					</option>
+					<option value="https://test.hpi-schul-cloud.org">
+						test.hpi-schul-cloud.org
+					</option>
+					<option value="https://oauth.test.hpi-schul-cloud.org">
+						oauth.test.hpi-schul-cloud.org
+					</option>
+				</select>
+			</div>
+			<button v-if="showOAuth && !connected"
 				id="schulcloud-oauth"
 				@click="onOAuthClick">
 				<span class="icon icon-external" />
-				{{ t('integration_schulcloud', 'Request Schulcloud access') }}
+				{{ t('integration_schulcloud', 'Connect to HPI Schul-Cloud') }}
 			</button>
-			<span v-else />
-			<label for="schulcloud-token">
-				<a class="icon icon-category-auth" />
-				{{ t('integration_schulcloud', 'Schulcloud API-key') }}
-			</label>
-			<input id="schulcloud-token"
-				v-model="state.token"
-				type="password"
-				:readonly="readonly"
-				:placeholder="t('integration_schulcloud', 'my-api-key')"
-				@focus="readonly = false"
-				@input="onInput">
+			<div v-if="connected" class="schulcloud-grid-form">
+				<label class="schulcloud-connected">
+					<a class="icon icon-checkmark-color" />
+					{{ t('integration_schulcloud', 'Connected to HPI Schul-Cloud') }}
+				</label>
+				<button id="schulcloud-rm-cred" @click="onLogoutClick">
+					<span class="icon icon-close" />
+					{{ t('integration_schulcloud', 'Disconnect from HPI Schul-Cloud') }}
+				</button>
+				<span />
+			</div>
 		</div>
 	</div>
 </template>
@@ -78,7 +80,11 @@ export default {
 
 	computed: {
 		showOAuth() {
-			return this.state.url
+			return this.state.url && this.state.url !== ''
+		},
+		connected() {
+			return this.state.url && this.state.url !== ''
+				&& this.state.token && this.state.token !== ''
 		},
 	},
 
@@ -91,9 +97,9 @@ export default {
 		const urlParams = new URLSearchParams(paramString)
 		const dscToken = urlParams.get('schulcloudToken')
 		if (dscToken === 'success') {
-			showSuccess(t('integration_schulcloud', 'Schulcloud API-key successfully retrieved!'))
+			showSuccess(t('integration_schulcloud', 'Successfully connected to Schul-Cloud!'))
 		} else if (dscToken === 'error') {
-			showError(t('integration_schulcloud', 'Schulcloud API-key could not be obtained:') + ' ' + urlParams.get('message'))
+			showError(t('integration_schulcloud', 'Schul-Cloud connection error:') + ' ' + urlParams.get('message'))
 		}
 
 		// register protocol handler
@@ -103,6 +109,10 @@ export default {
 	},
 
 	methods: {
+		onLogoutClick() {
+			this.state.token = ''
+			this.saveOptions()
+		},
 		onInput() {
 			const that = this
 			delay(function() {
@@ -194,7 +204,6 @@ export default {
 	max-width: 900px;
 	display: grid;
 	grid-template: 1fr / 1fr 1fr 1fr;
-	margin-left: 30px;
 	button .icon {
 		margin-bottom: -1px;
 	}
@@ -214,5 +223,8 @@ export default {
 }
 body.dark .icon-schulcloud {
 	background-image: url(./../../img/app.svg);
+}
+#schulcloud-content {
+	margin-left: 40px;
 }
 </style>
