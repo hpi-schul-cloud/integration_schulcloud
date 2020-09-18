@@ -221,7 +221,7 @@ export default {
 	height: 23px;
 	margin-bottom: -4px;
 }
-body.dark .icon-schulcloud {
+body.theme--dark .icon-schulcloud {
 	background-image: url(./../../img/app.svg);
 }
 #schulcloud-content {
