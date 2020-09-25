@@ -74,10 +74,16 @@ class ConfigController extends Controller {
 	/**
 	 * set config values
 	 * @NoAdminRequired
+	 *
+	 * @param array $values
+	 * @return DataResponse
 	 */
-	public function setConfig($values) {
+	public function setConfig(array $values): DataResponse {
 		foreach ($values as $key => $value) {
 			$this->config->setUserValue($this->userId, Application::APP_ID, $key, $value);
+		}
+		if (isset($values['token']) && $values['token'] === '') {
+			$this->config->setUserValue($this->userId, Application::APP_ID, 'refresh_token', '');
 		}
 		$response = new DataResponse(1);
 		return $response;
@@ -85,8 +91,11 @@ class ConfigController extends Controller {
 
 	/**
 	 * set admin config values
+	 *
+	 * @param array $values
+	 * @return DataResponse
 	 */
-	public function setAdminConfig($values) {
+	public function setAdminConfig(array $values): DataResponse {
 		foreach ($values as $key => $value) {
 			$this->config->setAppValue(Application::APP_ID, $key, $value);
 		}
@@ -98,8 +107,18 @@ class ConfigController extends Controller {
 	 * receive oauth redirection forwarded by custom protocol handler
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
+	 *
+	 * @param string $url
+	 * @return RedirectResponse
 	 */
-	public function oauthProtocolRedirect($url) {
+	public function oauthProtocolRedirect(string $url = ''): RedirectResponse {
+		if ($url === '') {
+			$message = $this->l->t('Error getting OAuth access token');
+			return new RedirectResponse(
+				$this->urlGenerator->linkToRoute('settings.PersonalSettings.index', ['section' => 'connected-accounts']) .
+				'?schulcloudToken=error&message=' . urlencode($message) . '#schulcloud_prefs'
+			);
+		}
 		$parts = parse_url($url);
 		parse_str($parts['query'], $params);
 		return $this->oauthRedirect($params['code'], $params['state']);
@@ -109,8 +128,12 @@ class ConfigController extends Controller {
 	 * receive oauth redirection
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
+	 *
+	 * @param ?string $code
+	 * @param ?string $state
+	 * @return RedirectResponse
 	 */
-	public function oauthRedirect(?string $code, ?string $state) {
+	public function oauthRedirect(?string $code = '', ?string $state = ''): RedirectResponse {
 		$configState = $this->config->getUserValue($this->userId, Application::APP_ID, 'oauth_state', '');
 		$clientID = DEFAULT_SCHULCLOUD_CLIENT_ID;
 		$clientSecret = DEFAULT_SCHULCLOUD_CLIENT_SECRET;
@@ -147,5 +170,4 @@ class ConfigController extends Controller {
 			'?schulcloudToken=error&message=' . urlencode($result) . '#schulcloud_prefs'
 		);
 	}
-
 }

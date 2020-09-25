@@ -69,10 +69,11 @@ class SchulcloudAPIController extends Controller {
 	}
 
 	/**
-	 * get notification list
 	 * @NoAdminRequired
+	 *
+	 * @return DataResponse
 	 */
-	public function getSchulcloudUrl() {
+	public function getSchulcloudUrl(): DataResponse {
 		return new DataResponse($this->schulcloudUrl);
 	}
 
@@ -80,8 +81,11 @@ class SchulcloudAPIController extends Controller {
 	 * get schulcloud user avatar
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
+	 *
+	 * @param string $username
+	 * @return DataDisplayResponse
 	 */
-	public function getSchulcloudAvatar($username) {
+	public function getSchulcloudAvatar(string $username): DataDisplayResponse {
 		$response = new DataDisplayResponse(
 			$this->schulcloudAPIService->getSchulcloudAvatar(
 				$this->schulcloudUrl, $this->accessToken, $this->refreshToken, $this->clientID, $this->clientSecret, $username
@@ -92,11 +96,13 @@ class SchulcloudAPIController extends Controller {
 	}
 
 	/**
-	 * get todo list
 	 * @NoAdminRequired
+	 *
+	 * @param string $since
+	 * @return DataResponse
 	 */
-	public function getNotifications($since = null) {
-		if ($this->accessToken === '' or $this->clientID === '') {
+	public function getNotifications(string $since = null): DataResponse {
+		if ($this->accessToken === '' || $this->clientID === '') {
 			return new DataResponse('', 400);
 		}
 		$result = $this->schulcloudAPIService->getNotifications(

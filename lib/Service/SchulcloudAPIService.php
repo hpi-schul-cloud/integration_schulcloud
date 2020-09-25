@@ -36,34 +36,63 @@ class SchulcloudAPIService {
 		$this->client = $clientService->newClient();
 	}
 
+	/**
+	 * @param string $url
+	 * @param string $accessToken
+	 * @param string $refreshToken
+	 * @param string $clientID
+	 * @param string $clientSecret
+	 * @param ?string $since
+	 * @return array
+	 */
 	public function getNotifications(string $url,
 									string $accessToken, string $refreshToken, string $clientID, string $clientSecret,
-									?string $since) {
+									?string $since): array {
 		$result = $this->request($url, $accessToken, $refreshToken, $clientID, $clientSecret, 'notifications.json', $params);
-		if (!is_array($result)) {
+		if (isset($result['error'])) {
 			return $result;
 		}
 		$notifications = [];
-		if (isset($result['notifications']) and is_array($result['notifications'])) {
+		if (isset($result['notifications']) && is_array($result['notifications'])) {
 			foreach ($result['notifications'] as $notification) {
-				array_push($notifications, $notification);
+				$notifications[] = $notification;
 			}
 		}
 
 		return $notifications;
 	}
 
+	/**
+	 * @param string $url
+	 * @param string $accessToken
+	 * @param string $refreshToken
+	 * @param string $clientID
+	 * @param string $clientSecret
+	 * @param string $username
+	 * @return ?string
+	 */
 	public function getSchulcloudAvatar(string $url,
 										string $accessToken, string $refreshToken, string $clientID, string $clientSecret,
-										string $username) {
+										string $username): ?string {
 		$result = $this->request($url, $accessToken, $refreshToken, $clientID, $clientSecret, 'users/'.$username.'.json');
-		if (is_array($result) and isset($result['user']) and isset($result['user']['avatar_template'])) {
+		if (isset($result['user'], $result['user']['avatar_template'])) {
 			$avatarUrl = $url . str_replace('{size}', '32', $result['user']['avatar_template']);
 			return $this->client->get($avatarUrl)->getBody();
 		}
 		return '';
 	}
 
+	/**
+	 * @param string $url
+	 * @param string $accessToken
+	 * @param string $refreshToken
+	 * @param string $clientID
+	 * @param string $clientSecret
+	 * @param string $endPoint
+	 * @param array $params
+	 * @param string $method
+	 * @return array
+	 */
 	public function request(string $url,
 							string $accessToken, string $refreshToken, string $clientID, string $clientSecret,
 							string $endPoint, array $params = [], string $method = 'GET'): array {
@@ -142,6 +171,12 @@ class SchulcloudAPIService {
 		}
 	}
 
+	/**
+	 * @param string $url
+	 * @param array $params
+	 * @param string $method
+	 * @return array
+	 */
 	public function requestOAuthAccessToken(string $url, array $params = [], string $method = 'GET'): array {
 		try {
 			$url = $url . '/oauth2/token';
