@@ -136,7 +136,7 @@ export default {
 			const url = generateUrl('/apps/integration_schulcloud/config')
 			axios.put(url, req)
 				.then((response) => {
-					showSuccess(t('integration_schulcloud', 'Schulcloud options saved.'))
+					showSuccess(t('integration_schulcloud', 'Schulcloud options saved'))
 				})
 				.catch((error) => {
 					showError(

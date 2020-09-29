@@ -11,7 +11,6 @@
 			</div>
 			<div v-else-if="state === 'error'">
 				<a :href="settingsUrl">
-					{{ t('integration_schulcloud', 'Incorrect API key.') }}
 					{{ t('integration_schulcloud', 'Click here to configure the access to your Schulcloud account.') }}
 				</a>
 			</div>
@@ -118,7 +117,7 @@ export default {
 				if (error.response && error.response.status === 400) {
 					this.state = 'no-token'
 				} else if (error.response && error.response.status === 401) {
-					showError(t('integration_schulcloud', 'Failed to get Schulcloud notifications.'))
+					showError(t('integration_schulcloud', 'Failed to get Schulcloud notifications'))
 					this.state = 'error'
 				} else {
 					// there was an error in notif processing
