@@ -14,6 +14,8 @@ namespace OCA\Schulcloud\Service;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 use OCP\Http\Client\IClientService;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 
 class SchulcloudAPIService {
 
@@ -144,13 +146,12 @@ class SchulcloudAPIService {
 			} else {
 				return json_decode($body, true);
 			}
-		} catch (ClientException $e) {
-			$this->logger->warning('Schulcloud API error : '.$e, array('app' => $this->appName));
+		} catch (ServerException | ClientException $e) {
 			$response = $e->getResponse();
 			$body = (string) $response->getBody();
 			// refresh token if it's invalid and we are using oauth
-			if (strpos($body, 'expired') !== false) {
-				$this->logger->warning('Trying to REFRESH the access token', array('app' => $this->appName));
+			if (strpos($body, 'expired') !== false || $response->getStatusCode() === 401) {
+				$this->logger->info('Trying to REFRESH the access token', ['app' => $this->appName]);
 				// try to refresh the token
 				$result = $this->requestOAuthAccessToken($url, [
 					'client_id' => $clientID,
@@ -167,6 +168,7 @@ class SchulcloudAPIService {
 					);
 				}
 			}
+			$this->logger->warning('Schulcloud API error : '.$e, ['app' => $this->appName]);
 			return ['error' => $e->getMessage()];
 		}
 	}
@@ -213,7 +215,7 @@ class SchulcloudAPIService {
 				return json_decode($body, true);
 			}
 		} catch (\Exception $e) {
-			$this->logger->warning('Schulcloud OAuth error : '.$e, array('app' => $this->appName));
+			$this->logger->warning('Schulcloud OAuth error : '.$e, ['app' => $this->appName]);
 			return ['error' => $e->getMessage()];
 		}
 	}
