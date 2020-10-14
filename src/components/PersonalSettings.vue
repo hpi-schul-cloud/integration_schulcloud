@@ -197,9 +197,11 @@ export default {
 .schulcloud-grid-form label {
 	line-height: 38px;
 }
+
 .schulcloud-grid-form input {
 	width: 100%;
 }
+
 .schulcloud-grid-form {
 	max-width: 600px;
 	display: grid;
@@ -208,23 +210,29 @@ export default {
 		margin-bottom: -1px;
 	}
 }
+
 #schulcloud_prefs .icon {
 	display: inline-block;
 	width: 32px;
 }
+
 #schulcloud_prefs .grid-form .icon {
 	margin-bottom: -3px;
 }
+
 .icon-schulcloud {
 	background-image: url(./../../img/app-dark.svg);
 	background-size: 23px 23px;
 	height: 23px;
 	margin-bottom: -4px;
 }
+
 body.theme--dark .icon-schulcloud {
 	background-image: url(./../../img/app.svg);
 }
+
 #schulcloud-content {
 	margin-left: 40px;
 }
+
 </style>
