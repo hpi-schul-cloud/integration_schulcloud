@@ -103,8 +103,15 @@ export default {
 		}
 
 		// register protocol handler
+		const ncUrl = window.location.protocol
+			+ '//' + window.location.hostname
+			+ window.location.pathname.replace('settings/user/connected-accounts', '').replace('/index.php/', '')
 		if (window.isSecureContext && window.navigator.registerProtocolHandler) {
-			window.navigator.registerProtocolHandler('web+nextcloud', generateUrl('/apps/integration_schulcloud/oauth-protocol-redirect') + '?url=%s', 'Nextcloud Schulcloud integration')
+			window.navigator.registerProtocolHandler(
+				'web+nextcloud',
+				generateUrl('/apps/integration_schulcloud/oauth-protocol-redirect') + '?url=%s',
+				t('integration_schulcloud', 'Nextcloud Schulcloud HPI integration on {ncUrl}', { ncUrl })
+			)
 		}
 	},
 
