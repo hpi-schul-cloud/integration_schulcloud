@@ -3,7 +3,7 @@
 		:show-more-url="showMoreUrl"
 		:show-more-text="title"
 		:loading="state === 'loading'">
-		<template v-slot:empty-content>
+		<template #empty-content>
 			<div v-if="state === 'no-token'">
 				<a :href="settingsUrl">
 					{{ t('integration_schulcloud', 'Click here to configure the access to your Schulcloud account.') }}
